@@ -15,7 +15,7 @@ export default function Cadastro(){
  if(existing){const {error}=await supabase.from("professionals").update(payload).eq("id",existing.id);if(error)throw error}
  else{const {error}=await supabase.from("professionals").insert(payload);if(error)throw error}
  setMessage("Rascunho salvo! Seu perfil ainda não está publicado. A verificação de contato e a escolha de profissão serão adicionadas nas próximas etapas.");
- }catch(e){setMessage(e instanceof Error?e.message:"Erro ao salvar cadastro.")}finally{setBusy(false)}}
+ }catch(e){setMessage(e instanceof Error?e.message:JSON.stringify(e))}finally{setBusy(false)}}
  if(loading)return <main className="wrap section">Verificando acesso...</main>;
  if(!userId)return <main className="wrap section"><h1>Cadastro profissional</h1><p>Entre na sua conta para cadastrar seus serviços.</p><Link className="btn" href="/entrar">Entrar ou criar conta</Link></main>;
  return <main className="wrap section" style={{maxWidth:650}}><Link href="/">← Início</Link><h1>Seu perfil profissional</h1><p className="muted">Preencha os dados básicos. Seu cadastro será salvo como rascunho e não ficará público nesta etapa.</p><form className="card" onSubmit={save} style={{display:"grid",gap:14}}>
