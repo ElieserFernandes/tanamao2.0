@@ -28,3 +28,5 @@
 .pro-modal .pro-heading{padding-right:30px}
 .whatsapp-btn{background:#25d366;color:#073c21}.whatsapp-btn:hover{background:#1ebe59}
 @media(max-width:700px){.pro-list-item{padding:12px;gap:12px}.pro-list-main>strong{font-size:16px}.pro-modal{padding:20px 16px}.pro-modal .pro-gallery img{width:145px;height:125px;flex-basis:145px}}
+
+.category-icon{font-size:20px;line-height:1.2;margin-bottom:6px}
