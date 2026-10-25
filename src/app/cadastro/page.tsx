@@ -7,7 +7,7 @@ type Profession = {id:string;name:string};
 export default function Cadastro(){
  const [userId,setUserId]=useState<string|null>(null);const [isPublished,setIsPublished]=useState(false);const [profileId,setProfileId]=useState<string|null>(null);const [requestedAt,setRequestedAt]=useState<string|null>(null);const [requestBusy,setRequestBusy]=useState(false);
  const [loading,setLoading]=useState(true);
- const [name,setName]=useState("");const [professionId,setProfessionId]=useState("");
+ const [name,setName]=useState("");const [fullName,setFullName]=useState("");const [companyName,setCompanyName]=useState("");const [professionId,setProfessionId]=useState("");
  const [professions,setProfessions]=useState<Profession[]>([]);
  const [city,setCity]=useState("");const [uf,setUf]=useState("");
  const [whatsapp,setWhatsapp]=useState("");const [bio,setBio]=useState("");
@@ -25,9 +25,9 @@ export default function Cadastro(){
     if(professionsError)throw new Error("Erro ao consultar profissões: "+professionsError.message+" (código "+(professionsError.code||"indisponível")+")");
     if(active)setProfessions(options??[]);
     if(user){
-     const {data:existing,error:existingError}=await supabase.from("professionals").select("id,display_name,profession_id,city,state_code,whatsapp,bio,publication_requested_at,published,review_status").eq("user_id",user.id).maybeSingle();
+     const {data:existing,error:existingError}=await supabase.from("professionals").select("id,display_name,full_name,company_name,profession_id,city,state_code,whatsapp,bio,publication_requested_at,published,review_status").eq("user_id",user.id).maybeSingle();
      if(existingError)throw new Error("Erro ao consultar seu perfil: "+existingError.message+" (código "+(existingError.code||"indisponível")+")");
-     if(existing&&active){setProfileId(existing.id);setIsPublished(Boolean(existing.published));setRequestedAt(existing.publication_requested_at??null);setName(existing.display_name??"");setProfessionId(existing.profession_id??"");setCity(existing.city??"");setUf(existing.state_code??"");setWhatsapp(existing.whatsapp??"");setBio(existing.bio??"");}
+     if(existing&&active){setProfileId(existing.id);setIsPublished(Boolean(existing.published));setRequestedAt(existing.publication_requested_at??null);setName(existing.display_name??"");setFullName(existing.full_name??"");setCompanyName(existing.company_name??"");setProfessionId(existing.profession_id??"");setCity(existing.city??"");setUf(existing.state_code??"");setWhatsapp(existing.whatsapp??"");setBio(existing.bio??"");}
     }
    }catch(e){if(active)setLoadError(e instanceof Error?e.message:"Não foi possível carregar seu cadastro.")}
    finally{if(active)setLoading(false)}
@@ -38,13 +38,14 @@ export default function Cadastro(){
   e.preventDefault();if(!userId)return;
   setBusy(true);setMessage("");
   try{
+   if(fullName.trim().length<3)throw new Error("Informe nome e sobrenome.");
    if(!professionId)throw new Error("Escolha sua profissão principal.");
    const supabase=getSupabase();
    const {data:existing,error:lookupError}=await supabase.from("professionals").select("id,slug").eq("user_id",userId).maybeSingle();
    if(lookupError)throw lookupError;
    const number=whatsapp.replace(/\D/g,"");
    if(number.length<10||number.length>13)throw new Error("Informe um WhatsApp com DDD válido.");
-   const payload={user_id:userId,display_name:name.trim(),slug:existing?.slug??("profissional-"+userId.slice(0,12)),profession_id:professionId,city:city.trim(),state_code:uf.toUpperCase().trim(),whatsapp:number,bio:bio.trim()};
+   const payload={user_id:userId,display_name:(companyName.trim()||name.trim()),full_name:fullName.trim(),company_name:companyName.trim(),slug:existing?.slug??("profissional-"+userId.slice(0,12)),profession_id:professionId,city:city.trim(),state_code:uf.toUpperCase().trim(),whatsapp:number,bio:bio.trim()};
    if(existing){const {error}=await supabase.from("professionals").update(payload).eq("id",existing.id);if(error)throw error;setProfileId(existing.id)}
    else{const {data:created,error}=await supabase.from("professionals").insert(payload).select("id").single();if(error)throw error;setProfileId(created.id)}
    setShowSuccess(true);
@@ -73,7 +74,7 @@ export default function Cadastro(){
  <Link href="/">← Voltar ao início</Link><h1>Divulgue seus serviços</h1>
  <p className="muted">Conte um pouco sobre seu trabalho. Você poderá atualizar essas informações depois.</p>
  <form className="card" onSubmit={save} style={{display:"grid",gap:14}}>
- <label>Nome profissional<input required minLength={2} maxLength={120} value={name} onChange={e=>setName(e.target.value)} style={{display:"block",width:"100%",padding:12,marginTop:5}}/></label>
+ <label>Nome e sobrenome<input required minLength={3} value={fullName} onChange={e=>setFullName(e.target.value)} style={{display:"block",width:"100%",padding:12,marginTop:5}}/></label><label>Nome da empresa (opcional)<input value={companyName} onChange={e=>setCompanyName(e.target.value)} maxLength={120} style={{display:"block",width:"100%",padding:12,marginTop:5}}/></label><label>Nome de divulgação<input required minLength={2} maxLength={120} value={name} onChange={e=>setName(e.target.value)} style={{display:"block",width:"100%",padding:12,marginTop:5}}/></label>
  <label>Profissão principal<select required value={professionId} onChange={e=>setProfessionId(e.target.value)} style={{display:"block",width:"100%",padding:12,marginTop:5}}><option value="">Selecione sua profissão</option>{professions.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
  <label>Cidade<input required value={city} onChange={e=>setCity(e.target.value)} style={{display:"block",width:"100%",padding:12,marginTop:5}}/></label>
  <label>Estado (UF)<input required maxLength={2} minLength={2} value={uf} onChange={e=>setUf(e.target.value)} placeholder="SP" style={{display:"block",width:"100%",padding:12,marginTop:5}}/></label>
