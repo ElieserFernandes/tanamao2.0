@@ -8,7 +8,7 @@ export default function Cadastro(){
  const [userId,setUserId]=useState<string|null>(null);const [isPublished,setIsPublished]=useState(false);const [profileId,setProfileId]=useState<string|null>(null);const [requestedAt,setRequestedAt]=useState<string|null>(null);const [requestBusy,setRequestBusy]=useState(false);
  const [loading,setLoading]=useState(true);
  const [name,setName]=useState("");const [fullName,setFullName]=useState("");const [companyName,setCompanyName]=useState("");const [professionId,setProfessionId]=useState("");
- const [professions,setProfessions]=useState<Profession[]>([]);
+ const [professions,setProfessions]=useState<Profession[]>([]);const [suggestion,setSuggestion]=useState("");const [suggestBusy,setSuggestBusy]=useState(false);const [suggestMessage,setSuggestMessage]=useState("");
  const [city,setCity]=useState("");const [uf,setUf]=useState("");
  const [whatsapp,setWhatsapp]=useState("");const [bio,setBio]=useState("");
  const [message,setMessage]=useState("");const [showSuccess,setShowSuccess]=useState(false);const [busy,setBusy]=useState(false);const [loadError,setLoadError]=useState("");
@@ -52,6 +52,7 @@ export default function Cadastro(){
   }catch(e){setMessage(e instanceof Error?e.message:"Não foi possível salvar. Tente novamente.")}
   finally{setBusy(false)}
  }
+ async function suggestProfession(){const value=suggestion.trim();if(value.length<3){setSuggestMessage("Informe o nome da profissão.");return;}if(professions.some(p=>p.name.toLocaleLowerCase("pt-BR")===value.toLocaleLowerCase("pt-BR"))){setSuggestMessage("Esta profissão já está disponível na lista.");return;}setSuggestBusy(true);setSuggestMessage("");try{const {error}=await getSupabase().from("profession_suggestions").insert({user_id:userId,name:value});if(error)throw error;setSuggestMessage("Sugestão enviada! Nossa equipe avaliará a inclusão. Você poderá concluir o cadastro profissional quando ela estiver disponível.");setSuggestion("");}catch(e){setSuggestMessage(e instanceof Error?e.message:"Não foi possível enviar. Verifique o SQL 010 no Supabase.")}finally{setSuggestBusy(false)}}
  async function requestPublication(){
  if(!profileId)return;
  setRequestBusy(true);setMessage("");
@@ -75,7 +76,7 @@ export default function Cadastro(){
  <p className="muted">Conte um pouco sobre seu trabalho. Você poderá atualizar essas informações depois.</p>
  <form className="card" onSubmit={save} style={{display:"grid",gap:14}}>
  <label>Nome e sobrenome<input required minLength={3} value={fullName} onChange={e=>setFullName(e.target.value)} style={{display:"block",width:"100%",padding:12,marginTop:5}}/></label><label>Nome da empresa (opcional)<input value={companyName} onChange={e=>setCompanyName(e.target.value)} maxLength={120} style={{display:"block",width:"100%",padding:12,marginTop:5}}/></label><label>Nome de divulgação<input required minLength={2} maxLength={120} value={name} onChange={e=>setName(e.target.value)} style={{display:"block",width:"100%",padding:12,marginTop:5}}/></label>
- <label>Profissão principal<select required value={professionId} onChange={e=>setProfessionId(e.target.value)} style={{display:"block",width:"100%",padding:12,marginTop:5}}><option value="">Selecione sua profissão</option>{professions.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+ <label>Profissão principal<select required value={professionId} onChange={e=>setProfessionId(e.target.value)} style={{display:"block",width:"100%",padding:12,marginTop:5}}><option value="">Selecione sua profissão</option>{professions.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label><div style={{padding:"12px",background:"#f0f6ff",borderRadius:12}}><strong>Não encontrou sua profissão?</strong><p className="muted" style={{margin:"6px 0 10px"}}>Sugira uma nova profissão para nossa equipe avaliar.</p><input aria-label="Sugerir profissão" placeholder="Ex.: Instalador de energia solar" maxLength={80} value={suggestion} onChange={e=>setSuggestion(e.target.value)} style={{display:"block",width:"100%",padding:10,marginBottom:8}}/><button type="button" className="share" disabled={suggestBusy||!suggestion.trim()} onClick={suggestProfession}>{suggestBusy?"Enviando...":"Sugerir nova profissão"}</button>{suggestMessage&&<p role="status" style={{marginTop:8}}>{suggestMessage}</p>}</div>
  <label>Cidade<input required value={city} onChange={e=>setCity(e.target.value)} style={{display:"block",width:"100%",padding:12,marginTop:5}}/></label>
  <label>Estado (UF)<input required maxLength={2} minLength={2} value={uf} onChange={e=>setUf(e.target.value)} placeholder="SP" style={{display:"block",width:"100%",padding:12,marginTop:5}}/></label>
  <label>WhatsApp com DDD<input required value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="15999999999" style={{display:"block",width:"100%",padding:12,marginTop:5}}/></label>
