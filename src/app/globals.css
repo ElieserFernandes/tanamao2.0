@@ -14,3 +14,17 @@
 .pro-gallery img{width:160px;height:130px;flex:0 0 160px;object-fit:cover;border-radius:12px;scroll-snap-align:start}
 .pro-contact{width:100%;margin-top:10px}
 @media(max-width:700px){.pro-card{padding:16px}.pro-logo{width:64px;height:64px;flex-basis:64px}.pro-heading h3{font-size:18px}.pro-gallery img{width:135px;height:115px;flex-basis:135px}}
+
+
+/* Busca compacta e perfil detalhado */
+.pro-list-item{font:inherit;text-align:left;width:100%;max-width:760px;display:flex;align-items:center;gap:15px;background:white;border:1px solid #e0e8f1;border-radius:15px;padding:15px;margin:12px 0;cursor:pointer;box-shadow:0 3px 12px #102d4c0b;transition:border-color .15s,box-shadow .15s}
+.pro-list-item:hover,.pro-list-item:focus-visible{border-color:#1666c5;box-shadow:0 5px 20px #145fbd20;outline-offset:2px}
+.pro-list-main{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}.pro-list-main>strong{font-size:19px;color:#102d4c;overflow-wrap:anywhere}.pro-list-main .pro-category{margin:0}.pro-list-main .pro-location{margin:0}.pro-list-arrow{font-size:32px;color:#1666c5;padding:0 5px}
+.pro-rating{color:#d58b00;font-weight:700;font-size:14px;margin:4px 0 0}.pro-rating small{color:#68778a;font-weight:400;font-size:13px}
+.pro-modal-backdrop{position:fixed;inset:0;z-index:1000;background:#0b1d35a6;display:flex;align-items:center;justify-content:center;padding:18px}
+.pro-modal{position:relative;background:white;border-radius:20px;padding:26px;width:100%;max-width:720px;max-height:90vh;overflow-y:auto;box-shadow:0 18px 65px #071b3650}
+.pro-modal h4{font-size:16px;margin:24px 0 10px}.pro-modal .pro-gallery{margin-top:8px}.pro-modal .pro-gallery a{flex:0 0 auto}.pro-modal .pro-gallery img{width:190px;height:155px;flex-basis:190px}
+.pro-close{position:absolute;top:13px;right:13px;border:0;border-radius:50%;background:#eef2f7;color:#334155;font-size:20px;width:36px;height:36px;cursor:pointer}
+.pro-modal .pro-heading{padding-right:30px}
+.whatsapp-btn{background:#25d366;color:#073c21}.whatsapp-btn:hover{background:#1ebe59}
+@media(max-width:700px){.pro-list-item{padding:12px;gap:12px}.pro-list-main>strong{font-size:16px}.pro-modal{padding:20px 16px}.pro-modal .pro-gallery img{width:145px;height:125px;flex-basis:145px}}
