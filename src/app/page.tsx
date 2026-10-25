@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
 const categories=[["🔧","Reformas e manutenção"],["💅","Beleza e estética"],["🧹","Limpeza"],["🚗","Automotivo"],["🍳","Alimentação"],["📚","Aulas e serviços"]];
-type Professional = { id:string; display_name:string; city:string; state_code:string; bio:string|null; whatsapp:string; profession_id:string|null; profession_name?:string };
+type Professional = { id:string; display_name:string; city:string; state_code:string; bio:string|null; whatsapp:string; profession_id:string|null; custom_profession:string|null; profession_name?:string };
 function normalize(value:string){return value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR").trim()}
 function ShareIcon(){return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 13.5 6.6 4M15.3 6.5l-6.6 4"/></svg>}
 export default function Home(){
@@ -11,13 +11,13 @@ export default function Home(){
  async function share(){const url=window.location.origin;const text="Você trabalha por conta própria? Cadastre gratuitamente seus serviços no TÁNAMÃO e receba contatos de clientes pelo WhatsApp!";try{if(navigator.share){await navigator.share({title:"Indique o TÁNAMÃO",text,url})}else{await navigator.clipboard.writeText(text+" "+url);alert("Convite copiado! Envie a um profissional pelo WhatsApp.")}}catch{}}
  async function search(e:React.FormEvent){e.preventDefault();setSearched(true);setSearching(true);setSearchError("");setResults([]);document.getElementById("resultados")?.scrollIntoView({behavior:"smooth"});try{
  const supabase=getSupabase();
- let query=supabase.from("professionals").select("id,display_name,city,state_code,bio,whatsapp,profession_id").eq("published",true);if(city.trim())query=query.ilike("city",city.trim());const {data,error}=await query.limit(100);
+ let query=supabase.from("professionals").select("id,display_name,city,state_code,bio,whatsapp,profession_id,custom_profession").eq("published",true);if(city.trim())query=query.ilike("city",city.trim());const {data,error}=await query.limit(100);
  if(error)throw error;
  const items=(data??[]) as Professional[];
  const ids=[...new Set(items.map(p=>p.profession_id).filter((id):id is string=>Boolean(id)))];
  let names:Record<string,string>={};
  if(ids.length){const {data:professions,error:professionError}=await supabase.from("professions").select("id,name").in("id",ids);if(professionError)throw professionError;names=Object.fromEntries((professions??[]).map(p=>[p.id,p.name]))}
- const q=normalize(profession);setResults(items.map(p=>({...p,profession_name:p.profession_id?names[p.profession_id]:""})).filter(p=>!q||[p.display_name,p.bio??"",p.profession_name??""].some(v=>normalize(v).includes(q))).slice(0,10));
+ const q=normalize(profession);setResults(items.map(p=>({...p,profession_name:p.custom_profession?.trim()|| (p.profession_id?names[p.profession_id]:"")})).filter(p=>!q||[p.display_name,p.bio??"",p.profession_name??""].some(v=>normalize(v).includes(q))).slice(0,10));
  }catch(e){setSearchError("Não foi possível concluir a busca agora. Tente novamente em instantes.");console.error("Erro na busca",e)}finally{setSearching(false)}}
  function whatsapp(p:Professional){const number=p.whatsapp.replace(/\D/g,"");const message="Olá! Encontrei seu perfil no TÁNAMÃO e gostaria de saber mais sobre seus serviços.";return "https://wa.me/"+(number.startsWith("55")?number:"55"+number)+"?text="+encodeURIComponent(message)}
  return <><header className="top"><div className="wrap nav"><a href="/" className="logo">TÁNA<span>MÃO</span></a><nav className="navlinks"><a href="#categorias">Profissões</a><a href="#como-funciona">Como funciona</a><a href={loggedIn?"/minha-conta":"/entrar"} className="account-nav">{loggedIn?<><span className="account-avatar">{accountAvatar?<img src={accountAvatar} alt="" />:accountName?accountName.charAt(0).toUpperCase():"👤"}</span><span>{accountName?accountName.split(" ")[0]:"Minha conta"}</span></>:"Entrar"}</a><a className="btn secondary" href={loggedIn?"/cadastro":"/entrar"}>Sou profissional</a></nav></div></header>
