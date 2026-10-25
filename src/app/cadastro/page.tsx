@@ -5,7 +5,7 @@ import { getSupabase } from "@/lib/supabase";
 
 type Profession = {id:string;name:string};
 export default function Cadastro(){
- const [userId,setUserId]=useState<string|null>(null);
+ const [userId,setUserId]=useState<string|null>(null);const [profileId,setProfileId]=useState<string|null>(null);const [requestedAt,setRequestedAt]=useState<string|null>(null);const [requestBusy,setRequestBusy]=useState(false);
  const [loading,setLoading]=useState(true);
  const [name,setName]=useState("");const [professionId,setProfessionId]=useState("");
  const [professions,setProfessions]=useState<Profession[]>([]);
@@ -25,9 +25,9 @@ export default function Cadastro(){
     if(professionsError)throw new Error("Erro ao consultar profissões: "+professionsError.message+" (código "+(professionsError.code||"indisponível")+")");
     if(active)setProfessions(options??[]);
     if(user){
-     const {data:existing,error:existingError}=await supabase.from("professionals").select("display_name,profession_id,city,state_code,whatsapp,bio").eq("user_id",user.id).maybeSingle();
+     const {data:existing,error:existingError}=await supabase.from("professionals").select("id,display_name,profession_id,city,state_code,whatsapp,bio,publication_requested_at").eq("user_id",user.id).maybeSingle();
      if(existingError)throw new Error("Erro ao consultar seu perfil: "+existingError.message+" (código "+(existingError.code||"indisponível")+")");
-     if(existing&&active){setName(existing.display_name??"");setProfessionId(existing.profession_id??"");setCity(existing.city??"");setUf(existing.state_code??"");setWhatsapp(existing.whatsapp??"");setBio(existing.bio??"");}
+     if(existing&&active){setProfileId(existing.id);setRequestedAt(existing.publication_requested_at??null);setName(existing.display_name??"");setProfessionId(existing.profession_id??"");setCity(existing.city??"");setUf(existing.state_code??"");setWhatsapp(existing.whatsapp??"");setBio(existing.bio??"");}
     }
    }catch(e){if(active)setLoadError(e instanceof Error?e.message:"Não foi possível carregar seu cadastro.")}
    finally{if(active)setLoading(false)}
@@ -45,12 +45,13 @@ export default function Cadastro(){
    const number=whatsapp.replace(/\D/g,"");
    if(number.length<10||number.length>13)throw new Error("Informe um WhatsApp com DDD válido.");
    const payload={user_id:userId,display_name:name.trim(),slug:existing?.slug??("profissional-"+userId.slice(0,12)),profession_id:professionId,city:city.trim(),state_code:uf.toUpperCase().trim(),whatsapp:number,bio:bio.trim(),published:false};
-   if(existing){const {error}=await supabase.from("professionals").update(payload).eq("id",existing.id);if(error)throw error}
-   else{const {error}=await supabase.from("professionals").insert(payload);if(error)throw error}
+   if(existing){const {error}=await supabase.from("professionals").update(payload).eq("id",existing.id);if(error)throw error;setProfileId(existing.id)}
+   else{const {data:created,error}=await supabase.from("professionals").insert(payload).select("id").single();if(error)throw error;setProfileId(created.id)}
    setShowSuccess(true);
   }catch(e){setMessage(e instanceof Error?e.message:"Não foi possível salvar. Tente novamente.")}
   finally{setBusy(false)}
  }
+ async function requestPublication(){if(!profileId)return;setRequestBusy(true);setMessage("");try{const {error}=await getSupabase().from("professionals").update({publication_requested_at:new Date().toISOString()}).eq("id",profileId);if(error)throw error;setRequestedAt(new Date().toISOString());setMessage("Solicitação registrada! Seu perfil continua em rascunho enquanto preparamos a revisão e a publicação.");}catch(e){setMessage(e instanceof Error?e.message:"Não foi possível solicitar a publicação.");}finally{setRequestBusy(false)}}
  if(loading)return <main className="wrap section">Carregando cadastro...</main>;
  if(!userId)return <main className="wrap section"><h1>Divulgue seus serviços</h1><p>Entre ou crie sua conta gratuita para continuar.</p><Link className="btn" href="/entrar">Entrar ou criar conta</Link></main>;
  return <main className="wrap section" style={{maxWidth:650}}>
@@ -66,5 +67,5 @@ export default function Cadastro(){
  <button className="btn" disabled={busy||professions.length===0}>{busy?"Salvando...":"Salvar cadastro"}</button>
  {professions.length===0&&<p className="muted">As profissões ainda não foram carregadas. Precisamos atualizar o banco de dados.</p>}
  {loadError&&<p role="alert" style={{color:"#a32222",overflowWrap:"anywhere"}}><strong>Problema na conexão com o banco:</strong> {loadError} <button type="button" onClick={()=>window.location.reload()} style={{textDecoration:"underline",marginLeft:8}}>Tentar novamente</button></p>}{message&&<p role="alert">{message}</p>}
- </form>{showSuccess&&<div role="presentation" style={{position:"fixed",inset:0,background:"rgba(10,23,43,.6)",display:"grid",placeItems:"center",zIndex:1000,padding:20}} onClick={()=>setShowSuccess(false)}><div role="dialog" aria-modal="true" aria-labelledby="success-title" onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:22,padding:"32px 26px",maxWidth:420,width:"100%",textAlign:"center",boxShadow:"0 20px 60px rgba(0,0,0,.25)",position:"relative"}}><button type="button" aria-label="Fechar" onClick={()=>setShowSuccess(false)} style={{position:"absolute",right:16,top:12,fontSize:26,color:"#64748b",background:"none",border:0,cursor:"pointer"}}>×</button><div aria-hidden="true" style={{width:76,height:76,background:"#16a34a",borderRadius:"50%",color:"white",display:"grid",placeItems:"center",fontSize:48,fontWeight:700,margin:"0 auto 20px"}}>✓</div><h2 id="success-title" style={{fontSize:26,marginBottom:12}}>Cadastro salvo com sucesso!</h2><p style={{color:"#52647c",lineHeight:1.6,marginBottom:24}}>Seu perfil foi salvo como rascunho e ainda não aparece nas buscas. Estamos preparando a etapa de publicação. Por enquanto, você não precisa fazer mais nada. Volte a esta página quando quiser atualizar seus dados.</p><button type="button" className="btn" onClick={()=>setShowSuccess(false)} style={{width:"100%"}}>OK</button></div></div>}</main>;
+ </form>{profileId&&<section className="card" style={{marginTop:20}}><h2 style={{fontSize:22,marginTop:0}}>Próximo passo: publicar seu perfil</h2><p className="muted">Confira seus dados acima antes de solicitar a publicação. A solicitação não torna seu perfil público automaticamente.</p>{requestedAt?<p style={{color:"#166534",fontWeight:700}}>✓ Solicitação de publicação recebida. Aguardando disponibilização da revisão.</p>:<button type="button" className="btn" disabled={requestBusy||busy} onClick={requestPublication}>{requestBusy?"Enviando...":"Solicitar publicação"}</button>}{message&&<p role="status">{message}</p>}</section>}{showSuccess&&<div role="presentation" style={{position:"fixed",inset:0,background:"rgba(10,23,43,.6)",display:"grid",placeItems:"center",zIndex:1000,padding:20}} onClick={()=>setShowSuccess(false)}><div role="dialog" aria-modal="true" aria-labelledby="success-title" onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:22,padding:"32px 26px",maxWidth:420,width:"100%",textAlign:"center",boxShadow:"0 20px 60px rgba(0,0,0,.25)",position:"relative"}}><button type="button" aria-label="Fechar" onClick={()=>setShowSuccess(false)} style={{position:"absolute",right:16,top:12,fontSize:26,color:"#64748b",background:"none",border:0,cursor:"pointer"}}>×</button><div aria-hidden="true" style={{width:76,height:76,background:"#16a34a",borderRadius:"50%",color:"white",display:"grid",placeItems:"center",fontSize:48,fontWeight:700,margin:"0 auto 20px"}}>✓</div><h2 id="success-title" style={{fontSize:26,marginBottom:12}}>Cadastro salvo com sucesso!</h2><p style={{color:"#52647c",lineHeight:1.6,marginBottom:24}}>Seu perfil foi salvo como rascunho e ainda não aparece nas buscas. Próximo passo: confira seus dados e clique em “Solicitar publicação” abaixo do formulário. Sua solicitação será registrada, mas o perfil só aparecerá nas buscas depois da revisão.</p><button type="button" className="btn" onClick={()=>setShowSuccess(false)} style={{width:"100%"}}>OK</button></div></div>}</main>;
 }
