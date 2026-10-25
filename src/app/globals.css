@@ -132,3 +132,13 @@ body{background:var(--tm-mist);color:var(--tm-dark)}
 .profile-share-links svg{width:18px;height:18px}
 .profile-share-notice{display:block;color:#12613d;font-weight:700;margin-top:12px}
 .profile-share-options small{display:block;margin-top:12px;color:#617285;line-height:1.5}
+
+
+/* Cores reconhecíveis das redes sociais */
+.pro-socials a.social-instagram_url{background:linear-gradient(135deg,#833ab4 0%,#c13584 35%,#e1306c 65%,#fd9b43 100%);color:#fff;border-color:transparent}
+.pro-socials a.social-facebook_url{background:#1877f2;color:#fff;border-color:#1877f2}
+.pro-socials a.social-linkedin_url{background:#0a66c2;color:#fff;border-color:#0a66c2}
+.pro-socials a.social-tiktok_url{background:#161616;color:#fff;border-color:#161616;box-shadow:inset 2px 0 #25f4ee,inset -2px 0 #fe2c55}
+.pro-socials a.social-website_url{background:#087a76;color:#fff;border-color:#087a76}
+.pro-socials a[class*="social-"]:hover{filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 5px 12px #12384b22}
+.pro-socials a[class*="social-"]:focus-visible{outline:3px solid #ffae3b;outline-offset:3px}
