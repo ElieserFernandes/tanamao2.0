@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import GlobalHomeHeader from "./components/GlobalHomeHeader";
 export const metadata: Metadata = { applicationName:"TÁNAMÃO",appleWebApp:{capable:true,title:"TÁNAMÃO",statusBarStyle:"default"}, metadataBase:new URL("https://tanamaopro.vercel.app"),title:"TÁNAMÃO | Encontre profissionais",description:"O profissional certo está na sua mão. Encontre profissionais por cidade e converse diretamente pelo WhatsApp.",openGraph:{type:"website",locale:"pt_BR",siteName:"TÁNAMÃO",title:"TÁNAMÃO — O profissional certo está na sua mão",description:"Encontre profissionais e converse diretamente pelo WhatsApp.",url:"https://tanamaopro.vercel.app",images:[{url:"/opengraph-image",width:1200,height:630,alt:"TÁNAMÃO — O profissional certo está na sua mão"}]},twitter:{card:"summary_large_image",title:"TÁNAMÃO — O profissional certo está na sua mão",images:["/opengraph-image"]} };
 export const viewport = {themeColor:"#145fbd",width:"device-width",initialScale:1};
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="pt-BR"><body>{children}</body></html>; }
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="pt-BR"><body><GlobalHomeHeader/>{children}</body></html>; }
