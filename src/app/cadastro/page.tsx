@@ -11,7 +11,7 @@ export default function Cadastro(){
  const [professions,setProfessions]=useState<Profession[]>([]);
  const [city,setCity]=useState("");const [uf,setUf]=useState("");
  const [whatsapp,setWhatsapp]=useState("");const [bio,setBio]=useState("");
- const [message,setMessage]=useState("");const [busy,setBusy]=useState(false);
+ const [message,setMessage]=useState("");const [busy,setBusy]=useState(false);const [loadError,setLoadError]=useState("");
  useEffect(()=>{
   let active=true;
   async function load(){
@@ -22,14 +22,14 @@ export default function Cadastro(){
     if(!active)return;
     setUserId(user?.id??null);
     const {data:options,error:professionsError}=await supabase.from("professions").select("id,name").eq("active",true).order("name");
-    if(professionsError)throw professionsError;
+    if(professionsError)throw new Error("Erro ao consultar profissões: "+professionsError.message+" (código "+(professionsError.code||"indisponível")+")");
     if(active)setProfessions(options??[]);
     if(user){
      const {data:existing,error:existingError}=await supabase.from("professionals").select("display_name,profession_id,city,state_code,whatsapp,bio").eq("user_id",user.id).maybeSingle();
-     if(existingError)throw existingError;
+     if(existingError)throw new Error("Erro ao consultar seu perfil: "+existingError.message+" (código "+(existingError.code||"indisponível")+")");
      if(existing&&active){setName(existing.display_name??"");setProfessionId(existing.profession_id??"");setCity(existing.city??"");setUf(existing.state_code??"");setWhatsapp(existing.whatsapp??"");setBio(existing.bio??"");}
     }
-   }catch(e){if(active)setMessage(e instanceof Error?e.message:"Não foi possível carregar seu cadastro.")}
+   }catch(e){if(active)setLoadError(e instanceof Error?e.message:"Não foi possível carregar seu cadastro.")}
    finally{if(active)setLoading(false)}
   }
   void load();return()=>{active=false};
@@ -65,6 +65,6 @@ export default function Cadastro(){
  <label>Sobre seu trabalho<textarea value={bio} onChange={e=>setBio(e.target.value)} rows={3} style={{display:"block",width:"100%",padding:12,marginTop:5}}/></label>
  <button className="btn" disabled={busy||professions.length===0}>{busy?"Salvando...":"Salvar cadastro"}</button>
  {professions.length===0&&<p className="muted">As profissões ainda não foram carregadas. Precisamos atualizar o banco de dados.</p>}
- {message&&<p role="status">{message}</p>}
+ {loadError&&<p role="alert" style={{color:"#a32222",overflowWrap:"anywhere"}}><strong>Problema na conexão com o banco:</strong> {loadError} <button type="button" onClick={()=>window.location.reload()} style={{textDecoration:"underline",marginLeft:8}}>Tentar novamente</button></p>}{message&&<p role="status">{message}</p>}
  </form></main>;
 }
