@@ -55,7 +55,7 @@ grant execute on function public.admin_review_professional(uuid,boolean) to auth
 create or replace function public.enforce_professional_draft()
 returns trigger language plpgsql security invoker set search_path = '' as $$
 begin
- if auth.role() = 'authenticated' then new.published := false; end if;
+ if current_user = 'authenticated' then new.published := false; end if;
  return new;
 end; $$;
 
