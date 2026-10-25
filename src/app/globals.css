@@ -106,3 +106,10 @@ body{background:var(--tm-mist);color:var(--tm-dark)}
  .mobile-bottom-nav a span{font-size:24px;line-height:1;color:var(--tm-teal)}
  .bottom{padding-bottom:96px}
 }
+
+/* Identidade consistente nas páginas internas */
+.global-home-header{height:68px;background:#fff;border-bottom:1px solid #e3e9f0;display:flex;align-items:center;justify-content:space-between;padding:0 max(20px,calc((100vw - 1100px)/2));position:relative;z-index:20}
+.global-home-brand{display:inline-flex;align-items:center;gap:7px;font-size:26px;font-weight:900;letter-spacing:-.9px;color:#145fbd;text-decoration:none;line-height:1}
+.global-home-brand strong{color:#f4a41d;font-weight:900}.global-home-hand{font-size:26px;letter-spacing:0}
+.global-home-link{color:#1764b7;font-weight:700;font-size:14px;padding:10px;border-radius:9px}.global-home-link:hover{background:#eef5ff}
+@media(max-width:700px){.global-home-header{height:62px;padding:0 16px}.global-home-brand{font-size:23px}.global-home-hand{font-size:23px}}
