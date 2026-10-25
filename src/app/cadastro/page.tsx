@@ -11,7 +11,7 @@ export default function Cadastro(){
  const [professions,setProfessions]=useState<Profession[]>([]);
  const [city,setCity]=useState("");const [uf,setUf]=useState("");
  const [whatsapp,setWhatsapp]=useState("");const [bio,setBio]=useState("");
- const [message,setMessage]=useState("");const [busy,setBusy]=useState(false);const [loadError,setLoadError]=useState("");
+ const [message,setMessage]=useState("");const [showSuccess,setShowSuccess]=useState(false);const [busy,setBusy]=useState(false);const [loadError,setLoadError]=useState("");
  useEffect(()=>{
   let active=true;
   async function load(){
@@ -47,7 +47,7 @@ export default function Cadastro(){
    const payload={user_id:userId,display_name:name.trim(),slug:existing?.slug??("profissional-"+userId.slice(0,12)),profession_id:professionId,city:city.trim(),state_code:uf.toUpperCase().trim(),whatsapp:number,bio:bio.trim(),published:false};
    if(existing){const {error}=await supabase.from("professionals").update(payload).eq("id",existing.id);if(error)throw error}
    else{const {error}=await supabase.from("professionals").insert(payload);if(error)throw error}
-   setMessage("Cadastro salvo com sucesso! Seu perfil está em rascunho e ainda não aparece nas buscas.");
+   setShowSuccess(true);
   }catch(e){setMessage(e instanceof Error?e.message:"Não foi possível salvar. Tente novamente.")}
   finally{setBusy(false)}
  }
@@ -65,6 +65,6 @@ export default function Cadastro(){
  <label>Sobre seu trabalho<textarea value={bio} onChange={e=>setBio(e.target.value)} rows={3} style={{display:"block",width:"100%",padding:12,marginTop:5}}/></label>
  <button className="btn" disabled={busy||professions.length===0}>{busy?"Salvando...":"Salvar cadastro"}</button>
  {professions.length===0&&<p className="muted">As profissões ainda não foram carregadas. Precisamos atualizar o banco de dados.</p>}
- {loadError&&<p role="alert" style={{color:"#a32222",overflowWrap:"anywhere"}}><strong>Problema na conexão com o banco:</strong> {loadError} <button type="button" onClick={()=>window.location.reload()} style={{textDecoration:"underline",marginLeft:8}}>Tentar novamente</button></p>}{message&&<p role="status">{message}</p>}
- </form></main>;
+ {loadError&&<p role="alert" style={{color:"#a32222",overflowWrap:"anywhere"}}><strong>Problema na conexão com o banco:</strong> {loadError} <button type="button" onClick={()=>window.location.reload()} style={{textDecoration:"underline",marginLeft:8}}>Tentar novamente</button></p>}{message&&<p role="alert">{message}</p>}
+ </form>{showSuccess&&<div role="presentation" style={{position:"fixed",inset:0,background:"rgba(10,23,43,.6)",display:"grid",placeItems:"center",zIndex:1000,padding:20}} onClick={()=>setShowSuccess(false)}><div role="dialog" aria-modal="true" aria-labelledby="success-title" onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:22,padding:"32px 26px",maxWidth:420,width:"100%",textAlign:"center",boxShadow:"0 20px 60px rgba(0,0,0,.25)",position:"relative"}}><button type="button" aria-label="Fechar" onClick={()=>setShowSuccess(false)} style={{position:"absolute",right:16,top:12,fontSize:26,color:"#64748b",background:"none",border:0,cursor:"pointer"}}>×</button><div aria-hidden="true" style={{width:76,height:76,background:"#16a34a",borderRadius:"50%",color:"white",display:"grid",placeItems:"center",fontSize:48,fontWeight:700,margin:"0 auto 20px"}}>✓</div><h2 id="success-title" style={{fontSize:26,marginBottom:12}}>Cadastro salvo com sucesso!</h2><p style={{color:"#52647c",lineHeight:1.6,marginBottom:24}}>Seu perfil está em rascunho e ainda não aparece nas buscas.</p><button type="button" className="btn" onClick={()=>setShowSuccess(false)} style={{width:"100%"}}>OK</button></div></div>}</main>;
 }
