@@ -11,7 +11,7 @@ export default function AdminPage(){
    const supabase=getSupabase();const {data:{user}}=await supabase.auth.getUser();
    if(!user)throw new Error("Entre na sua conta para acessar esta página.");
    const {data,error}=await supabase.rpc("admin_list_professionals");
-   if(error)throw error;
+   if(error)throw new Error([error.message,error.code&&"Código: "+error.code,error.details&&"Detalhes: "+error.details,error.hint&&"Dica: "+error.hint].filter(Boolean).join(" | "));
    setItems((data??[]) as Request[]);
   }catch(e){setError(e instanceof Error?e.message:"Não foi possível carregar solicitações.");}
   finally{setLoading(false);}
