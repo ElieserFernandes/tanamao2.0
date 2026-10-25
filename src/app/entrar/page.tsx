@@ -8,7 +8,7 @@ export default function Entrar(){
  const supabase=getSupabase();
  const {data,error}=mode==="register"?await supabase.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin+"/"}}):await supabase.auth.signInWithPassword({email,password});
  if(error)throw error;
- if(data.session)window.location.href="/";
+ if(data.session)window.location.href="/minha-conta";
  else if(mode==="register")setMessage("Conta criada. Se ainda não conseguir entrar, verifique se a confirmação de e-mail está desativada no Supabase.");
  else setMessage("Não foi possível iniciar a sessão. Tente novamente.");
  }catch(e){setMessage(e instanceof Error?e.message:"Não foi possível continuar.")}finally{setBusy(false)}}
