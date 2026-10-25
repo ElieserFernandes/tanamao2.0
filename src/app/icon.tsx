@@ -1,0 +1,4 @@
+import {ImageResponse} from "next/og";
+export const size={width:512,height:512};
+export const contentType="image/png";
+export default function Icon(){return new ImageResponse(<div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",background:"#145fbd",borderRadius:100}}><div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",width:400,height:400}}><div style={{display:"flex",fontSize:95,fontWeight:900,letterSpacing:-6,color:"#fff"}}><span>TÁNA</span><span style={{color:"#ffb22c"}}>MÃO</span></div><div style={{width:190,height:13,background:"#ffb22c",borderRadius:8,marginTop:10}}/></div></div>,{...size})}
