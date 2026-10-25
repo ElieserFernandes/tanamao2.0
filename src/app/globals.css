@@ -30,3 +30,5 @@
 @media(max-width:700px){.pro-list-item{padding:12px;gap:12px}.pro-list-main>strong{font-size:16px}.pro-modal{padding:20px 16px}.pro-modal .pro-gallery img{width:145px;height:125px;flex-basis:145px}}
 
 .category-icon{font-size:20px;line-height:1.2;margin-bottom:6px}
+
+.pro-socials{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0}.pro-socials a{display:inline-flex;align-items:center;padding:9px 13px;background:#eef5ff;color:#155db1;border:1px solid #d7e7fc;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px}.pro-socials a:hover{background:#dcecff}
