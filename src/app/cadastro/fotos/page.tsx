@@ -4,11 +4,12 @@ import Link from "next/link";
 import {getSupabase} from "@/lib/supabase";
 type Photo={id:string;storage_path:string;caption:string|null};
 const BUCKET="professional-media";
+function explainUploadError(error:{message?:string;statusCode?:string|number;error?:string}){const detail=[error.message,error.error,error.statusCode?String(error.statusCode):""].filter(Boolean).join(" | ");if(/bucket not found/i.test(detail))return "O armazenamento de fotos ainda não foi criado. Execute o SQL 009 no Supabase. Detalhe: "+detail;if(/row.level.security|policy|permission|unauthorized|not authorized/i.test(detail))return "O Supabase recusou o envio por falta de permissão. Confira os SQLs 009, 013 e 014. Detalhe: "+detail;if(/mime|file.type|content.type/i.test(detail))return "Formato não aceito pelo armazenamento. Detalhe: "+detail;return "Erro no envio ao Supabase: "+detail;}
 export default function FotosProfissionais(){
  const [userId,setUserId]=useState("");const [profileId,setProfileId]=useState("");const [photos,setPhotos]=useState<Photo[]>([]);const [logo,setLogo]=useState("");const [busy,setBusy]=useState(false);const [loading,setLoading]=useState(true);const [message,setMessage]=useState("");const [progress,setProgress]=useState("");const [acknowledged,setAcknowledged]=useState(false);const [confirmBusy,setConfirmBusy]=useState(false);const [galleryLoaded,setGalleryLoaded]=useState(false);
  const sb=getSupabase();
  function url(path:string){return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl}
- async function refresh(pid:string,uid:string){const {data,error}=await sb.from("gallery_photos").select("id,storage_path,caption").eq("professional_id",pid).order("created_at");if(error){setGalleryLoaded(false);throw new Error("Não foi possível consultar o catálogo ("+error.code+"): "+error.message+". Verifique as permissões do SQL 014.");}setPhotos(data??[]);setGalleryLoaded(true);const path=uid+"/logo";const {data:files,error:logoError}=await sb.storage.from(BUCKET).list(uid,{search:"logo"});if(logoError){setMessage("O catálogo foi consultado, mas houve falha ao verificar o logo: "+logoError.message);}setLogo(files?.some(f=>f.name==="logo")?url(path)+"?v="+Date.now():"")}
+ async function refresh(pid:string,uid:string){const {data,error}=await sb.from("gallery_photos").select("id,storage_path,caption").eq("professional_id",pid).order("created_at");if(error){setGalleryLoaded(false);throw new Error("Não foi possível consultar o catálogo ("+error.code+"): "+error.message+". Verifique as permissões do SQL 014.");}setPhotos(data??[]);setGalleryLoaded(true);const path=uid+"/logo";const {data:files,error:logoError}=await sb.storage.from(BUCKET).list(uid,{search:"logo"});if(logoError){setMessage("Não foi possível consultar o logo: "+logoError.message+". Confirme que o bucket professional-media existe e execute o SQL 013.");}setLogo(files?.some(f=>f.name==="logo")?url(path)+"?v="+Date.now():"")}
  useEffect(()=>{let active=true;(async()=>{try{const {data:{user}}=await sb.auth.getUser();if(!user){window.location.replace("/entrar");return;}const {data,error}=await sb.from("professionals").select("id").eq("user_id",user.id).maybeSingle();if(error)throw error;if(active){setUserId(user.id);setProfileId(data?.id??"");if(data?.id){await refresh(data.id,user.id);const {data:status}=await sb.from("professionals").select("no_gallery_acknowledged_at").eq("id",data.id).single();if(active)setAcknowledged(Boolean(status?.no_gallery_acknowledged_at))}}}catch(e){if(active)setMessage(e instanceof Error?e.message:"Erro ao carregar imagens.")}finally{if(active)setLoading(false)}})();return()=>{active=false}},[]);
  async function upload(file:File|undefined,kind:"logo"|"gallery"){
   if(!file)return;
@@ -18,7 +19,7 @@ export default function FotosProfissionais(){
    const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
    const path=kind==="logo"?userId+"/logo":userId+"/"+crypto.randomUUID()+"."+ext;
    const {error}=await sb.storage.from(BUCKET).upload(path,file,{upsert:kind==="logo",contentType:file.type});
-   if(error)throw error;
+   if(error)throw new Error(explainUploadError(error));
    if(kind==="gallery"){const {error:dbError}=await sb.from("gallery_photos").insert({professional_id:profileId,storage_path:path,visible:true});if(dbError){await sb.storage.from(BUCKET).remove([path]);throw dbError}}
    await refresh(profileId,userId);setMessage(kind==="logo"?"Logo cadastrado! Você pode substituí-lo quando quiser.":"Foto adicionada ao catálogo!");
   }catch(e){setMessage(e instanceof Error?e.message:"Não foi possível enviar a imagem.")}finally{setBusy(false);setProgress("")}
@@ -38,7 +39,7 @@ export default function FotosProfissionais(){
     const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
     const path=userId+"/"+crypto.randomUUID()+"."+ext;
     const {error}=await sb.storage.from(BUCKET).upload(path,file,{contentType:file.type});
-    if(error){failure=error.message;break;}
+    if(error){failure=explainUploadError(error);break;}
     const {error:dbError}=await sb.from("gallery_photos").insert({professional_id:profileId,storage_path:path,visible:true});
     if(dbError){await sb.storage.from(BUCKET).remove([path]);failure=dbError.message;break;}
     count++;
